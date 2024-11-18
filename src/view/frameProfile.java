@@ -3,6 +3,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package view;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.net.URL;
+import java.util.Base64;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import org.json.*;
 import kelas.mahasiswa;
 /**
@@ -20,6 +27,7 @@ public class frameProfile extends javax.swing.JFrame {
     }
     
     void loadProfile(){
+        tFoto.setIcon(null);
         JSONArray data = mahasiswa.getDataMhs();
         for (int i = 0; i < data.length(); i++) {
             JSONObject item = data.getJSONObject(i);
@@ -30,6 +38,35 @@ public class frameProfile extends javax.swing.JFrame {
                 tTTL.setText(item.getString("mhs_tempatlahir")+"," + item.getString("mhs_tanggallahir"));
                 tEmail.setText(item.getString("mhs_email"));
                 tHP.setText(item.getString("mhs_hp"));
+                
+                if(item.has("mhs_foto") && !item.isNull("mhs_foto") && !item.getString("mhs_foto").isEmpty()){
+                    String photoData = item.getString("mhs_foto");
+                    
+                    try {
+                        if(photoData.startsWith("data:image")){
+                            String base64Data = photoData.split(",")[1];
+                            byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+                            ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+                            BufferedImage img = ImageIO.read(bis);
+                            Image image = img.getScaledInstance(tFoto.getWidth(), tFoto.getHeight(), Image.SCALE_SMOOTH);
+                            ImageIcon ic = new ImageIcon(image);
+                            tFoto.setText(null);
+                            tFoto.setIcon(ic);
+                        } else{
+                            URL url = new URL(photoData);
+                            BufferedImage img =ImageIO.read(url);
+                            Image image = img.getScaledInstance(tFoto.getWidth(), tFoto.getHeight(), Image.SCALE_SMOOTH);
+                            ImageIcon ic = new ImageIcon(image);
+                            tFoto.setText(null);
+                            tFoto.setIcon(ic);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        tFoto.setText("Foto tidak tersedia");
+                    }
+                } else{
+                    tFoto.setText("KOSONG");
+                }
             }
         }
     }
